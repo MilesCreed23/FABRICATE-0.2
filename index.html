@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欠片の声 — FABRICATE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Josefin+Sans:wght@100;200;300&family=Noto+Serif+JP:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #080a0f;
+    --text: #d6d1c8;
+    --text-dim: #8c8880;
+    --text-bright: #f0ece4;
+    --accent: #a89878;
+    --accent-dim: #5a5040;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+  }
+
+  /* AMBIENT OVERLAY */
+  #ambient-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    transition: background-color 2.8s ease;
+    background-color: transparent;
+  }
+
+  /* FIREFLY CANVAS */
+  #firefly-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* COVER */
+  #cover {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    padding: 60px 20px;
+  }
+
+  .publisher-line {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 80px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards 0.3s;
+  }
+
+  .title-block {
+    text-align: center;
+  }
+
+  .title-japanese {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    font-size: clamp(52px, 10vw, 96px);
+    color: var(--text-bright);
+    letter-spacing: 0.1em;
+    line-height: 1;
+    margin-bottom: 20px;
+    text-shadow: 0 0 80px rgba(168,152,120,0.25);
+  }
+
+  .title-japanese .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: charReveal 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+
+  .title-romaji {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 200;
+    font-size: clamp(9px, 1.6vw, 13px);
+    letter-spacing: clamp(3px, 1.5vw, 10px);
+    color: var(--accent);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1.9s;
+  }
+
+  .title-fabricate {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: clamp(14px, 3.2vw, 32px);
+    letter-spacing: clamp(4px, 2vw, 18px);
+    color: var(--text-bright);
+    border-top: 1px solid var(--accent-dim);
+    border-bottom: 1px solid var(--accent-dim);
+    padding: 14px 0;
+    white-space: nowrap;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    animation: fabricateReveal 1.4s cubic-bezier(0.4,0,0.2,1) forwards 2.4s;
+  }
+
+  .cover-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(13px, 2vw, 16px);
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 50px;
+    line-height: 2.2;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 3.2s;
+  }
+
+  .cover-author {
+    margin-top: 80px;
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 1.4s ease forwards 3.7s;
+  }
+
+  .cover-author span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .cover-author strong {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    font-style: italic;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 4.4s;
+  }
+
+  .scroll-hint span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent-dim), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  .title-float {
+    animation: titleFloat 7s ease-in-out infinite !important;
+  }
+
+  /* WHITE SCREEN */
+  .white-screen {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100vh;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .white-screen-inner {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .white-screen.visible .white-screen-inner {
+    opacity: 1;
+  }
+
+  /* CHAPTER DIVIDER */
+  .chapter-divider {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 100px 20px 60px;
+    border-top: 1px solid rgba(168,152,120,0.08);
+  }
+
+  .chapter-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 8px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .chapter-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: clamp(28px, 5.5vw, 56px);
+    color: var(--text-bright);
+    letter-spacing: 4px;
+    font-style: italic;
+  }
+
+  .chapter-ornament {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    color: var(--accent-dim);
+  }
+
+  .chapter-ornament::before,
+  .chapter-ornament::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 1px;
+    background: var(--accent-dim);
+  }
+
+  .chapter-ornament span {
+    font-size: 8px;
+    color: var(--accent-dim);
+  }
+
+  /* NOVEL TEXT */
+  .novel-section {
+    position: relative;
+    z-index: 3;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 30px 100px;
+  }
+
+  .novel-section p {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: clamp(17px, 2.4vw, 21px);
+    line-height: 2.05;
+    color: var(--text);
+    margin-bottom: 1.8em;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .novel-section p:first-child::first-letter {
+    font-size: 4.5em;
+    font-weight: 300;
+    float: left;
+    line-height: 0.75;
+    margin: 0.08em 0.12em 0 0;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .novel-section p em {
+    font-style: italic;
+    color: var(--text-bright);
+  }
+
+  .scene-break {
+    text-align: center;
+    margin: 3em 0;
+    color: var(--accent-dim);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 8px;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* ARCHIVE BLOCK */
+  .archive-block {
+    border: 1px solid var(--accent-dim);
+    padding: 28px 32px;
+    margin: 3em 0;
+    background: rgba(168,152,120,0.025);
+    position: relative;
+  }
+
+  .archive-block::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    background: var(--bg);
+    padding: 0 10px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8px;
+    letter-spacing: 5px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .archive-block p {
+    font-family: 'Josefin Sans', sans-serif !important;
+    font-weight: 300 !important;
+    font-size: 13px !important;
+    letter-spacing: 1px;
+    line-height: 2.2 !important;
+    color: var(--text-dim) !important;
+    margin-bottom: 0.6em !important;
+    text-align: left !important;
+  }
+
+  .archive-block p:first-child::first-letter { all: unset; }
+
+  /* END MATTER */
+  .end-matter {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 80px 20px 140px;
+    border-top: 1px solid rgba(168,152,120,0.08);
+  }
+
+  .end-matter p {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .end-matter .final-japanese {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  /* KEYFRAMES */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes charReveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fabricateReveal {
+    0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+    10%  { opacity: 1; }
+    100% { opacity: 1; clip-path: inset(0 0% 0 0); }
+  }
+
+  @keyframes titleFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50%       { transform: translateY(-7px) scale(1.005); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 1; }
+  }
+
+  /* REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* MOBILE */
+  @media (max-width: 480px) {
+    .title-fabricate {
+      font-size: 12px;
+      letter-spacing: 3px;
+    }
+    .title-romaji {
+      letter-spacing: 2px;
+      font-size: 8px;
+    }
+    .novel-section {
+      padding: 0 18px 70px;
+    }
+    .novel-section p {
+      font-size: 16px;
+      line-height: 1.95;
+    }
+    .chapter-title {
+      letter-spacing: 2px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="ambient-overlay"></div>
+<canvas id="firefly-canvas"></canvas>
+
+<!-- ===================== COVER ===================== -->
+<section id="cover" data-ambient="prologue">
+  <div class="publisher-line">FAZZBUNNY Entertainment™ — Original Story — 2025</div>
+  <div class="title-block" id="title-block">
+    <div class="title-japanese" id="title-jp">欠片の声</div>
+    <div class="title-romaji">K A K E R A &nbsp;&nbsp; N O &nbsp;&nbsp; K O E</div>
+    <div class="title-fabricate">F A B R I C A T E</div>
+    <div class="cover-tagline">
+      Everything was built.<br>
+      Everything broke.<br>
+      Something remained.
+    </div>
+  </div>
+  <div class="cover-author">
+    <span>A Novel by</span>
+    <strong>Axel Mile Escartin</strong>
+  </div>
+  <div class="scroll-hint">
+    <span>Begin</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===================== PROLOGUE ===================== -->
+<div class="chapter-divider reveal" data-ambient="prologue">
+  <div class="chapter-label">Prologue</div>
+  <div class="chapter-title">The Island</div>
+  <div class="chapter-ornament"><span>&#9670;</span></div>
+</div>
+
+<section class="novel-section" data-ambient="prologue">
+
+  <p class="reveal">The morning came in gently, the way mornings do when no one is watching for them. Light through thin curtains. The smell of salt. Somewhere below the house, the sea moved against the rocks in its slow and ancient rhythm, indifferent to the family eating breakfast on the open terrace above it.</p>
+
+  <p class="reveal">Elton was watching his son chase a lizard across the stone wall at the far end of the terrace. Kai had spotted it twenty minutes ago and had not let it go since — moving carefully, patiently, with a focus that his father recognized and could not entirely explain. The lizard was faster. It always would be. But the boy was not ready to accept this yet, and Elton found that he did not want to tell him.</p>
+
+  <p class="reveal">Rei set a cup of coffee in front of him without being asked. She sat across from him and watched their son with the same quiet smile she always wore when Kai was doing something purposeless and completely his own. She had her mother's patience and her own particular way of being still — not absent, not distracted, just fully present in a way that most people never managed.</p>
+
+  <p class="reveal">"He's going to catch it one day," she said.</p>
+
+  <p class="reveal">"He won't," Elton said. "But he'll get very good at trying."</p>
+
+  <p class="reveal">She laughed. It was the kind of laugh that belonged to mornings like this one — unhurried, unguarded, not performing anything for anyone. Elton held onto it for a moment the way he held onto things he knew he might need later, pressing them quietly into memory.</p>
+
+  <p class="reveal">He had been working for TRIAS Corp for six years. He did not think about this on the terrace. The island was forty minutes by boat from the nearest city and the company had arranged for them to stay here for the month — a gesture that had felt generous at the time and now, sitting in the morning light with the sea below him and his son laughing at a wall, felt like the most important thing anyone had ever given him. He did not ask what it was in exchange for. He already knew. He had built things for them that he did not fully understand the purpose of, and when they asked him to build more he would say yes, because men like Elton Mori said yes to things they could not control, and then tried to make something beautiful with whatever time was left over.</p>
+
+  <p class="reveal">Kai gave up on the lizard and came back to the table. He was nine years old and had his father's jaw and his mother's eyes and a habit of asking questions that arrived slightly sideways, from angles no one else thought to approach from.</p>
+
+  <p class="reveal">"Papa," he said, climbing into his chair and reaching for a piece of fruit. "If you built something and it came alive, would it be yours?"</p>
+
+  <p class="reveal">Elton looked at him. "Where did that come from?"</p>
+
+  <p class="reveal">"I was thinking about the lizard. It was alive before I found it. So it was never mine." He bit into the fruit. "But if you made something alive — built it yourself — would it be yours then? Or would it be its own?"</p>
+
+  <p class="reveal">Rei was watching Elton across the table with an expression that said: <em>answer carefully.</em></p>
+
+  <p class="reveal">"I think," Elton said slowly, "that the moment something becomes alive — really alive — it stops belonging to whoever made it. It belongs to itself."</p>
+
+  <p class="reveal">Kai thought about this. "Even if you made it because you loved something else?"</p>
+
+  <p class="reveal">"Especially then," Elton said.</p>
+
+  <p class="reveal">His son nodded, satisfied, and went back to his fruit. Rei reached across the table and touched Elton's hand briefly — just a press of fingers, not even a full grip, a gesture so small it would have been invisible to anyone watching. He turned his hand over and held hers.</p>
+
+  <p class="reveal">The sea moved below them.</p>
+  <p class="reveal">The light held everything in amber.</p>
+  <p class="reveal">The lizard sat very still on the warm stone of the wall, watching the boy who had given up chasing it, and did not move.</p>
+
+</section>
+
+<!-- WHITE SCREEN -->
+<div class="white-screen reveal">
+  <div class="white-screen-inner"></div>
+</div>
+
+<!-- ===================== CHAPTER ONE ===================== -->
+<div class="chapter-divider reveal" data-ambient="dome">
+  <div class="chapter-label">Chapter One</div>
+  <div class="chapter-title">The Dome</div>
+  <div class="chapter-ornament"><span>&#9670;</span></div>
+</div>
+
+<section class="novel-section" data-ambient="dome">
+
+  <p class="reveal">The sky changed color at seven in the morning. It happened every day — a slow bleed from deep violet into pale amber, the light arriving not from any horizon but from everywhere at once, as if the air itself had decided to glow. Soren Kai had watched it happen ten thousand times and still, some mornings, he stood at his window long enough to miss breakfast.</p>
+
+  <p class="reveal">The city stretched below him in all directions. Towers of pale stone and glass, bridges arching between platforms at impossible heights, walkways draped in flowering vines that bloomed in colors with no name in any language Soren had been taught. The dome curved above all of it — a transparent shell so vast you could forget it was there. You had to look for the seam. And if you were smart, you stopped looking.</p>
+
+  <p class="reveal">Soren was seventeen. He had a quiet face and a habit of standing too long at windows, and he knew almost nothing else about whoever he had inherited these features from. His father Elton Mori ran the city. He had built the city. He had raised Soren inside it with the quiet efficiency of someone maintaining important infrastructure — meals appearing, tutors scheduled, rooms kept at the right temperature — but never quite with the warmth those things implied. His father spoke to him in hallways, briefly, always in transit between more important destinations. He answered questions with other questions. He smiled the way a building smiles: the right shape, nothing behind it.</p>
+
+  <p class="reveal">This was ordinary. Soren had no other father to compare him to.</p>
+
+  <p class="reveal">His days followed a reliable shape. Morning lessons in systems theory and environmental mathematics — the kind of education that felt oddly specific, as if someone had designed it for a particular purpose rather than a general one. Afternoons free to move through the city, which Soren did alone, walking routes he had memorized over years of solitary wandering. He knew every bridge, every market tier, every garden level where the engineered flowers bloomed in scheduled rotations. He knew the names of the city's eight districts and the function of each. He knew the maintenance schedules of the dome's atmospheric systems and the names of the three engineers who ran them.</p>
+
+  <p class="reveal">He did not know why he knew these things. He had simply learned them, the way you learn the shape of a room you've lived in for years — not because you studied it, but because it was always there.</p>
+
+  <div class="scene-break reveal">— ◇ —</div>
+
+  <p class="reveal">The people of the city were kind. They were always kind — uniformly, reliably, in a way that Soren had noticed years ago and filed away as something to think about later. They smiled when he passed. They asked after his father with a warmth that seemed genuine and yet never varied. Their conversations had a quality of smoothness, like water moving over stone that had been worn to the right shape — nothing catching, nothing surprising, everything flowing in the direction it was meant to flow.</p>
+
+  <p class="reveal">Once, when Soren was fourteen, he had gotten into an argument with a boy his own age over something he couldn't remember now. The boy had gotten upset — had raised his voice, gone red-faced, said something sharp. And then, almost immediately, he had stopped. Not calmed down gradually. Stopped. As if a switch had been adjusted somewhere inside him. He had apologized in a voice that was perfectly modulated and then walked away, and the expression on his face as he left was the expression of someone who has forgotten what they were feeling.</p>
+
+  <p class="reveal">Soren had thought about that moment many times since. He had never started an argument with anyone in the city again.</p>
+
+</section>
+
+<!-- ===================== CHAPTER TWO ===================== -->
+<div class="chapter-divider reveal" data-ambient="lockdown">
+  <div class="chapter-label">Chapter Two</div>
+  <div class="chapter-title">Lockdown</div>
+  <div class="chapter-ornament"><span>&#9670;</span></div>
+</div>
+
+<section class="novel-section" data-ambient="lockdown">
+
+  <p class="reveal">The morning of the lockdown began like any other morning. Soren ate alone at the long table in the residence hall, watching the engineered sparrows land on the garden below his window. A tutor named Dace came at eight and taught systems theory — resource cycles, atmospheric pressure calculations, the mathematics of contained environments. The lesson had always
